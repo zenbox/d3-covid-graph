@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            background-color: black;
+        }
+
+        svg {
+            background-color: white;
+        }
+
+        path:hover {
+            fill: gold;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="https://d3js.org/d3.v5.js"></script>
+    <script src="https://unpkg.com/topojson-client@3"></script>
+    <script>
+        {
+
+            let svg = d3.select('body')
+                .append('svg')
+                .attr('id', 'svg-map')
+                .attr('width', '700')
+                .attr('height', '500');
+
+            let padding = 40;
+            let
+                data, //The Covid dataset
+                world, // The TopoJSON
+                enter, // The enter selection
+                group,
+                map,
+                width, height;
+
+            let path = d3.geoPath().projection(
+                d3.geoMercator()
+                .scale(100)
+                .translate([700 / 2, 500 / 2])
+            );
+
+            function setGroup() {
+                group = d3.select('#svg-map')
+                    .append('g')
+                    .attr('id', 'map');
+            }
+
+            function enterData(world) {
+                enter = group.selectAll('path')
+                    .data(topojson.feature(world, world.objects.countries).features)
+                    .enter();
+            }
+
+            function drawMap() {
+                enter.append('path')
+                    .attr('id', (d, i) => d.properties.name)
+                    .attr('d', path)
+                    .on('mouseenter', (d, i) => {
+                        console.log(d.properties.name)
+                    })
+                    .on('mouseleave', (d, i) => {})
+            }
+
+            window.onload = function () {
+                Promise.all([
+                    d3.json('data/countries-110m.json'),
+                    d3.csv('data/covid-19-worldwide.csv'),
+                ]).then((files) => {
+                    world = files[0];
+                    data = files[1];
+
+                    setGroup();
+                    enterData(world);
+                    drawMap();
+                })
+
+
+            }
+        }
+    </script>
+</body>
+
+</html>
