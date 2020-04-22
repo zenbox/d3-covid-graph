@@ -13,14 +13,139 @@
             width: 100%;
             height: 100%;
         }
+
+        .bar {
+            fill: black;
+        }
     </style>
 </head>
 
 <body>
-    <h1>D3 Basics on a Bar Chart</h1>
     <script src="https://d3js.org/d3.v5.js"></script>
     <script>
         {
+
+            let svg = d3.select('body')
+                .append('svg')
+                .attr('id', 'svg-bars')
+                .attr('width', '100%')
+                .attr('height', '100%');
+
+            let padding = 40;
+            let
+                data, //The dataset
+                enter, // The enter selection
+                group,
+                bars,
+                width, height,
+                xScale, yScale;
+
+            function setGroup() {
+                group = d3.select('#svg-bars')
+                    .append('g')
+                    .attr('id', 'bars');
+            }
+
+            function enterData() {
+                // data = [100, 208, 112, 79, 50, 150];
+
+                // // rich data
+                // data = [{
+                //     date: '06/21/2020',
+                //     value: 100
+                // }, {
+                //     date: '06/21/2020',
+                //     value: 208
+                // }, {
+                //     date: '06/21/2020',
+                //     value: 112
+                // }, {
+                //     date: '06/21/2020',
+                //     value: 79
+                // }, {
+                //     date: '06/21/2020',
+                //     value: 50
+                // }];
+
+
+
+                enter = group
+                    .selectAll()
+                    .data(data)
+                    .enter();
+            }
+
+            function drawBars() {
+                enter
+                    .append('rect')
+                    .classed('bar', true)
+                    .attr('test', (d, i) => {
+                        // console.log(d.date)
+                    })
+                    .attr('x', (d, i) => padding + i * 11)
+                    .attr('y', (d, i) => height - padding - d.value)
+                    .attr('width', 10)
+                    .attr('height', (d, i) => +d.value)
+            }
+
+            function setXScale() {
+                xScale = d3.scaleTime()
+                    .domain(d3.extent(data, (d, i) => d.date))
+                    .range([0, width - padding * 2])
+            }
+
+            function setYScale() {
+                yScale = d3.scaleLinear()
+                    .domain([0, d3.max(data, (d, i) => d.value)])
+                    .range([height - padding * 2, 0])
+            }
+
+            function drawXAxis() {
+                group
+                    .append('g')
+                    .classed('axis', true)
+                    .attr('transform', `translate(${padding},${height-padding})`)
+                    .call(d3.axisBottom(xScale).ticks(d3.timeMonth.every(1)))
+            }
+
+            function drawYAxis() {
+                group
+                    .append('g')
+                    .classed('axis', true)
+                    .attr('transform', `translate(${padding},${padding})`)
+                    .call(d3.axisLeft(yScale).ticks(5))
+            }
+
+
+            window.onload = function () {
+                d3
+                    .csv('data/data-2.csv')
+                    .then((_data) => {
+                        data = _data;
+
+                        let dataByCountry = d3.nest()
+                            .key((d, i) => d.country)
+                            .entries(data);
+
+
+                        // Lazy!
+                        data = dataByCountry[59].values;
+                        console.log(data);
+
+                        // - - - - - - - - - -
+                        width = document.querySelector('#svg-bars').clientWidth;
+                        height = document.querySelector('#svg-bars').clientHeight;
+                        setGroup();
+                        enterData();
+                        drawBars();
+                        setXScale();
+                        setYScale();
+                        drawXAxis();
+                        drawYAxis();
+                        // - - - - - - - - - -
+                    })
+
+            }
 
         }
     </script>
